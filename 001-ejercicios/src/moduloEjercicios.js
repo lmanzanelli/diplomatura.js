@@ -19,12 +19,30 @@ import basededatos from './basededatos';
       universidad: 2,
     }
   ]
- * @param {number} alumnoId el id del alumno
+ * @param {nombreAlumno} nombreAlumno
  */
 export const materiasAprobadasByNombreAlumno = (nombreAlumno) => {
   // Ejemplo de como accedo a datos dentro de la base de datos
   // console.log(basededatos.alumnos);
-  return [];
+  let alumnos = basededatos.alumnos;
+  let calificaciones = basededatos.calificaciones;
+  let materias = basededatos.materias;
+  let materiasAprobadasDelAlumno;
+  alumnos.filter(function(alumno) {
+    if(alumno.nombre ===nombreAlumno){
+      materiasAprobadasDelAlumno = [];
+      let materiasAprobadas =  calificaciones.filter(function(calificacion) {
+        if(calificacion.alumno === alumno.id && calificacion.nota>=4){
+          let materiasAprobada =  materias.filter(function(materia) {
+            return materia.id ===calificacion.materia;
+          }); 
+          materiasAprobadasDelAlumno.push(materiasAprobada);
+        }
+      });
+      return;
+    }
+  });
+  return materiasAprobadasDelAlumno;
 };
 
 /**
@@ -69,7 +87,49 @@ export const materiasAprobadasByNombreAlumno = (nombreAlumno) => {
  * @param {string} nombreUniversidad
  */
 export const expandirInfoUniversidadByNombre = (nombreUniversidad) => {
-  return {};
+  let universidades = basededatos.universidades;
+  let materias = basededatos.materias;
+  let profesores = basededatos.profesores;
+  let alumnos = basededatos.alumnos;
+  let calificaciones = basededatos.calificaciones;
+  
+  let resultado;
+  universidades.filter(function(uni) {
+    if(uni.nombre ===nombreUniversidad){
+      resultado = uni;
+      resultado.materias=[];
+      resultado.profesores=[];
+      resultado.alumnos=[];
+      
+      materias.filter(function(materia) {
+          if(materia.universidad === uni.id){
+            
+            resultado.materias.push(materia);
+            materia.profesores.filter(function(id){
+                  let profe = profesores.find(function(profesor){
+                      return profesor.id ===id;
+                  });
+                  if(resultado.profesores.indexOf(profe)===-1){
+                    resultado.profesores.push(profe);
+                }
+            })
+            
+            calificaciones.filter(function(cali){
+                if(cali.materia===materia.id){
+                  let alumnito =alumnos.find(function(alumno){
+                      return alumno.id ===cali.alumno; 
+                  });
+                  
+                  if(resultado.alumnos.indexOf(alumnito)===-1){
+                      resultado.alumnos.push(alumnito);
+                  }
+                }    
+            });
+          }
+      });
+  }
+  });
+  return JSON.stringify(resultado, null, 2);;
 };
 
 // /**
